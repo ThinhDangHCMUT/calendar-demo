@@ -4,7 +4,7 @@ import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
 import advancedFormat from "dayjs/plugin/advancedFormat";
-import { Event, EventType } from "../types";
+import { Event, EventType, RecurrenceType } from "../types";
 import useCalendarStore from "@/stores/useCalendarStore";
 import EventModal from "./CreateEventModal";
 import { cn } from "@/utils";
@@ -28,7 +28,7 @@ const LargeCalendar: React.FC<LargeCalendarProps> = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
-  const { setSelectedEvent, selectedEvent } = useCalendarStore();
+  const { setSelectedEvent } = useCalendarStore();
 
   const headerRender = ({ value, type, onChange, onTypeChange }: any) => {
     const current = value.clone();
@@ -73,9 +73,50 @@ const LargeCalendar: React.FC<LargeCalendarProps> = ({
   };
 
   const dateCellRender = (date: dayjs.Dayjs) => {
-    const dayEvents = events.filter((event) =>
-      dayjs(event.startTime).isSame(date, "day")
-    );
+    const dayEvents = events.filter((event) => {
+      if (dayjs(event.startTime).isSame(date, "day")) {
+        return true;
+      }
+
+      if (event.recurrence) {
+        const startDate = dayjs(event.startTime);
+        const endDate = event.recurrence.endDate
+          ? dayjs(event.recurrence.endDate)
+          : null;
+
+        if (endDate && date.isAfter(endDate)) {
+          return false;
+        }
+
+        switch (event.recurrence.type) {
+          case RecurrenceType.DAILY:
+            return (
+              date.diff(startDate, "day") % event.recurrence.interval === 0
+            );
+          case RecurrenceType.WEEKLY:
+            return (
+              date.diff(startDate, "week") % event.recurrence.interval === 0 &&
+              (event.recurrence.daysOfWeek?.includes(date.day()) ||
+                date.day() === startDate.day())
+            );
+          case RecurrenceType.MONTHLY:
+            return (
+              date.diff(startDate, "month") % event.recurrence.interval === 0 &&
+              date.date() === startDate.date()
+            );
+          case RecurrenceType.YEARLY:
+            return (
+              date.diff(startDate, "year") % event.recurrence.interval === 0 &&
+              date.month() === startDate.month() &&
+              date.date() === startDate.date()
+            );
+          default:
+            return false;
+        }
+      }
+
+      return false;
+    });
 
     return (
       <div
@@ -95,6 +136,7 @@ const LargeCalendar: React.FC<LargeCalendarProps> = ({
         <div className="flex w-full flex-col gap-2 overflow-auto !overflow-x-hidden">
           {dayEvents.map((event) => (
             <div
+              key={event.id}
               className={cn(
                 "relative rounded-md bg-light-blue w-full py-1 hover:opacity-70",
                 event.type === EventType.WEBINAR ? "bg-dark-orange" : ""
@@ -139,21 +181,23 @@ const LargeCalendar: React.FC<LargeCalendarProps> = ({
     setIsModalOpen(true);
   };
 
-  const handleCreateEvent = () => {
-    setModalMode("create");
-    setIsModalOpen(true);
-  };
-
   return (
     <>
-      {/* <Button onClick={handleCreateEvent}>Create Event</Button> */}
-      {/* <div className="w-full h-full flex justify-center"> */}
       <Calendar
         value={selectedDate}
         onSelect={(date) => {
           onSelectDate(date);
           if (
-            events.some((event) => dayjs(event.startTime).isSame(date, "day"))
+            date.month() !== selectedDate.month() ||
+            date.year() !== selectedDate.year()
+          )
+            return;
+
+          if (
+            events.find(
+              (event) =>
+                !!event.id && dayjs(event.startTime).isSame(date, "day")
+            )
           ) {
             return;
           }

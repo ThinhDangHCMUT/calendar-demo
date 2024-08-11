@@ -33,11 +33,6 @@ interface CalendarState {
   deleteEvent: (eventId: string) => void;
   setSelectedDate: (date: dayjs.Dayjs) => void;
   setSelectedEvent: (event: Event | null) => void;
-  toggleCreateModal: () => void;
-  toggleEditModal: () => void;
-  updateCreateEventForm: (field: keyof CreateEventForm, value: any) => void;
-  resetCreateEventForm: () => void;
-  submitCreateEventForm: () => void;
 }
 
 const initialCreateEventForm: CreateEventForm = {
@@ -124,42 +119,6 @@ const useCalendarStore = create<CalendarState>()((set) => ({
     set(
       produce((state) => {
         state.selectedEvent = event;
-      })
-    ),
-  toggleCreateModal: () =>
-    set(
-      produce((state) => {
-        state.isCreateModalOpen = !state.isCreateModalOpen;
-      })
-    ),
-  toggleEditModal: () =>
-    set(
-      produce((state) => {
-        state.isEditModalOpen = !state.isEditModalOpen;
-      })
-    ),
-  updateCreateEventForm: (field, value) =>
-    set(
-      produce((state) => {
-        state.createEventForm[field] = value;
-      })
-    ),
-  resetCreateEventForm: () =>
-    set(
-      produce((state) => {
-        state.createEventForm = initialCreateEventForm;
-      })
-    ),
-  submitCreateEventForm: () =>
-    set(
-      produce((state) => {
-        const newEvent: Event = {
-          ...state.createEventForm,
-          id: Date.now().toString(),
-        };
-        state.events.push(newEvent);
-        state.isCreateModalOpen = false;
-        state.createEventForm = initialCreateEventForm;
       })
     ),
 }));
