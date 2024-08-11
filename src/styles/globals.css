@@ -1,33 +1,20 @@
+@layer tailwind-base {
+  @tailwind base;
+}
+@layer tailwind-base, antd;
+
+@layer reset, antd;
+@import url("antd/dist/reset.css") layer(reset);
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-}
-
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+.ant-picker-content > thead > tr > th {
+  padding: 0 !important;
+  font-size: 14px;
+  font-weight: 700;
+  color: #b8b8b8 !important;
+  text-align: center;
+  border-bottom: 1px solid #f0f0f0;
 }
