@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Calendar, Badge, Button } from "antd";
+import { Calendar, Badge, Button, Select } from "antd";
 import dayjs from "dayjs";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
@@ -9,6 +9,7 @@ import useCalendarStore from "@/stores/useCalendarStore";
 import EventModal from "./CreateEventModal";
 import { cn } from "@/utils";
 import Typography from "./common/Typography";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 dayjs.extend(isSameOrAfter);
 dayjs.extend(isSameOrBefore);
@@ -29,11 +30,52 @@ const LargeCalendar: React.FC<LargeCalendarProps> = ({
   const [modalMode, setModalMode] = useState<"create" | "edit">("create");
   const { setSelectedEvent, selectedEvent } = useCalendarStore();
 
+  const headerRender = ({ value, type, onChange, onTypeChange }: any) => {
+    const current = value.clone();
+    const handleMonthChange = (newMonth: number) => {
+      const newDate = current.month(newMonth);
+      onChange(newDate);
+    };
+
+    return (
+      <div className="flex items-center justify-between px-4 py-2">
+        <div className="flex items-center space-x-4">
+          <button
+            className="px-4 py-2 text-dark-blue text-base border-2 border-dark-blue !rounded-2xl hover:bg-blue-50"
+            onClick={() => onChange(dayjs())}
+          >
+            Today
+          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => onChange(current.subtract(1, "month"))}
+              className="text-dark-blue"
+            >
+              <ChevronLeft />
+            </button>
+            <button
+              onClick={() => onChange(current.add(1, "month"))}
+              className="text-dark-blue"
+            >
+              <ChevronRight />
+            </button>
+          </div>
+          <Typography as="h2" className="font-bold">
+            {current.format("MMMM YYYY")}
+          </Typography>
+        </div>
+        <Select value={type} onChange={(newType) => onTypeChange(newType)}>
+          <Select.Option value="month">Month</Select.Option>
+          <Select.Option value="year">Year</Select.Option>
+        </Select>
+      </div>
+    );
+  };
+
   const dateCellRender = (date: dayjs.Dayjs) => {
     const dayEvents = events.filter((event) =>
       dayjs(event.startTime).isSame(date, "day")
     );
-    // const hasEvents = dayEvents.length > 0;
 
     return (
       <div
@@ -121,7 +163,7 @@ const LargeCalendar: React.FC<LargeCalendarProps> = ({
         }}
         cellRender={dateCellRender}
         fullCellRender={fullRenderCell}
-        // className="bg-white shadow-md w-5/6"
+        headerRender={headerRender}
       />
       <EventModal
         isOpen={isModalOpen}

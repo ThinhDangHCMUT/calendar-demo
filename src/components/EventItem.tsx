@@ -5,7 +5,7 @@ import Typography from "./common/Typography";
 import Link from "next/link";
 import { Image } from "antd";
 import { cn } from "@/utils";
-import { CameraIcon, VideoIcon } from "lucide-react";
+import { VideoIcon } from "lucide-react";
 
 interface EventItemProps {
   event: Event;
